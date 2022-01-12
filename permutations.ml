@@ -49,6 +49,12 @@ let perm_minus_element n perm =
 let perm_plus_element n perm =
     List.concat_map (fun k -> if k = n then [n; n + 1] else if k > n then [k + 1] else [k]) perm
 
+let remove_nth_element n perm =
+    List.filter (fun k -> k <> n) perm
+
+let duplicate_nth_element n perm =
+    List.concat_map (fun k -> if k = n then [n; n] else [k]) perm
+
 (* HEAD / TAIL *)
 
 let rec head_tail element = function

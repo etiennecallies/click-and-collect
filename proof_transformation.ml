@@ -103,13 +103,44 @@ let can_eliminate_key_case notations = function
     | Cut_proof (head, _formula, _tail, p1, p2) -> let enabled, _ = can_cut_key_case (List.length head) 0 notations p1 p2 in enabled
     | _ -> false
 
+let identity_head_tail head tail =
+    identity (List.length head + 1 + List.length tail)
+
+let get_ancestors_lists = function
+    | Axiom_proof _ -> []
+    | One_proof -> []
+    | Top_proof (_, _) -> []
+    | Bottom_proof (head, tail, _) -> [remove_nth_element (List.length head) (identity_head_tail head tail)]
+    | Tensor_proof (head, _, _, tail, _, _) ->
+        let h = List.length head in
+        let t = List.length tail in
+        [(identity (h + 1)); List.map (fun n -> n + h) (identity (1 + t))]
+    | Par_proof (head, _, _, tail, _) -> [duplicate_nth_element (List.length head) (identity_head_tail head tail)]
+    | With_proof (head, _, _, tail, _, _) -> [identity_head_tail head tail; identity_head_tail head tail]
+    | Plus_left_proof (head, _, _, tail, _) -> [identity_head_tail head tail]
+    | Plus_right_proof (head, _, _, tail, _) -> [identity_head_tail head tail]
+    | Promotion_proof (head_without_whynot, _, tail_without_whynot, _) -> [identity_head_tail head_without_whynot tail_without_whynot]
+    | Dereliction_proof (head, _, tail, _) -> [identity_head_tail head tail]
+    | Weakening_proof (head, _, tail, _) -> [remove_nth_element (List.length head) (identity_head_tail head tail)]
+    | Contraction_proof (head, _, tail, _) -> [duplicate_nth_element (List.length head) (identity_head_tail head tail)]
+    | Exchange_proof (_, _, permutation, _) -> [permutation_inverse permutation]
+    | Cut_proof (head, _, tail, _, _) ->
+        let h = List.length head in
+        let t = List.length tail in
+        [(identity h) @ [-1]; [-1] @ List.map (fun n -> n + h) (identity t)]
+    | Unfold_litt_proof (head, _, tail, _) -> [identity_head_tail head tail]
+    | Unfold_dual_proof (head, _, tail, _) -> [identity_head_tail head tail]
+    | Hypothesis_proof _ -> [];;
+
 let get_transform_options_as_json notations not_cyclic proof =
     let transform_options = get_transform_options notations not_cyclic proof in
-    ["transformOptions", `List (List.map (fun (transform_option, (enabled, title)) -> `Assoc [
-        ("transformation", `String (Transform_request.to_string transform_option));
-        ("enabled", `Bool enabled);
-        ("title", `String title)
-        ]) transform_options)]
+    [
+        "transformOptions", `List (List.map (fun (transform_option, (enabled, title)) -> `Assoc [
+            ("transformation", `String (Transform_request.to_string transform_option));
+            ("enabled", `Bool enabled);
+            ("title", `String title)
+            ]) transform_options);
+        "ancestorsLists", `List (List.map (fun l -> `List (List.map (fun x -> `Int x) l)) (get_ancestors_lists proof))]
 
 let rec has_cut_that_can_be_eliminated notations not_cyclic proof =
     let transform_options = get_transform_options notations not_cyclic proof in

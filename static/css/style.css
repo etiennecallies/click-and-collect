@@ -76,6 +76,7 @@ input[type=text], .code { background-color: #FFF; font-family: "Courier New", sa
 .turnstile.not-auto-provable { color: orange; }
 .proof .commaList { display: inline-block; list-style: none; margin: 0; padding: 0; }
 .proof .commaList li { display: inline-block; margin-left: 0.2em; }
+.proof .commaList li.highlight span.main-formula { border-bottom: solid #66a3e0; }
 .proof.proof-transformation li span.cut-formula, .proof.proof-transformation .tagBox.cut, .tagBox.cut .transform { color: #b300b3; }
 .tagBox.cut .transform-button.enabled { border-color: #b300b3; }
 .tagBox.cut .transform-button.enabled:hover { background-color: #b300b3; }
